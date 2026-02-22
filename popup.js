@@ -1,4 +1,4 @@
-// popup.js
+// popup.js - Complete Compact Version with Card Layout
 
 class HackathonTracker {
   constructor() {
@@ -12,7 +12,7 @@ class HackathonTracker {
     this.saveBtn = document.getElementById('saveCurrent');
     this.exportBtn = document.getElementById('exportCSV');
     this.clearBtn = document.getElementById('clearAll');
-    this.tableBody = document.getElementById('tableBody');
+  this.eventsList = document.getElementById('eventsList'); 
     this.totalEventsSpan = document.getElementById('totalEvents');
     this.totalPlatformsSpan = document.getElementById('totalPlatforms');
     this.todayRegistrationsSpan = document.getElementById('todayRegistrations');
@@ -28,7 +28,6 @@ class HackathonTracker {
 
   startDateTimeUpdater() {
     this.updateCurrentDateTime();
-    // Update every second
     setInterval(() => this.updateCurrentDateTime(), 1000);
   }
 
@@ -37,12 +36,10 @@ class HackathonTracker {
       const now = new Date();
       const options = { 
         weekday: 'short', 
-        year: 'numeric', 
         month: 'short', 
         day: 'numeric',
         hour: '2-digit', 
         minute: '2-digit',
-        second: '2-digit',
         hour12: true
       };
       this.currentDateTimeSpan.textContent = now.toLocaleString('en-US', options);
@@ -54,7 +51,6 @@ class HackathonTracker {
       return null;
     }
 
-    // Try to parse the deadline string
     const deadline = this.parseDeadline(deadlineString);
     if (!deadline) return null;
 
@@ -66,9 +62,7 @@ class HackathonTracker {
   }
 
   parseDeadline(deadlineString) {
-    // Common date formats
     const patterns = [
-      // Format: "December 15, 2025" or "15 December 2025"
       {
         regex: /(\d{1,2})(?:st|nd|rd|th)?\s+(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d{4})/i,
         parse: (match) => {
@@ -76,7 +70,6 @@ class HackathonTracker {
           return new Date(parseInt(match[3]), month, parseInt(match[1]));
         }
       },
-      // Format: "Jan 15, 2025"
       {
         regex: /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})/i,
         parse: (match) => {
@@ -84,12 +77,10 @@ class HackathonTracker {
           return new Date(parseInt(match[3]), month, parseInt(match[2]));
         }
       },
-      // Format: "2025-12-15" or "2025/12/15"
       {
         regex: /(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/,
         parse: (match) => new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]))
       },
-      // Format: "15-12-2025" or "15/12/2025"
       {
         regex: /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/,
         parse: (match) => new Date(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1]))
@@ -100,14 +91,12 @@ class HackathonTracker {
       const match = deadlineString.match(pattern.regex);
       if (match) {
         const date = pattern.parse(match);
-        // Check if date is valid
         if (date instanceof Date && !isNaN(date)) {
           return date;
         }
       }
     }
 
-    // Try native Date parsing as fallback
     const date = new Date(deadlineString);
     if (date instanceof Date && !isNaN(date)) {
       return date;
@@ -125,22 +114,20 @@ class HackathonTracker {
     return months[key] || 0;
   }
 
-  getDaysLeftDisplay(daysLeft) {
-    if (daysLeft === null) {
-      return '<span class="days-left-badge days-left-expired">❓</span>';
-    }
-    
-    if (daysLeft < 0) {
-      return `<span class="days-left-badge days-left-expired" title="Deadline passed ${Math.abs(daysLeft)} days ago">⏰ Expired</span>`;
-    } else if (daysLeft === 0) {
-      return '<span class="days-left-badge days-left-urgent" title="Due today!">🔥 Today!</span>';
-    } else if (daysLeft <= 3) {
-      return `<span class="days-left-badge days-left-urgent" title="Only ${daysLeft} days left!">⚠️ ${daysLeft}d</span>`;
-    } else if (daysLeft <= 7) {
-      return `<span class="days-left-badge days-left-warning" title="${daysLeft} days left">📅 ${daysLeft}d</span>`;
-    } else {
-      return `<span class="days-left-badge days-left-good" title="${daysLeft} days left">✅ ${daysLeft}d</span>`;
-    }
+  getDaysLeftClass(daysLeft) {
+    if (daysLeft === null) return 'days-expired';
+    if (daysLeft < 0) return 'days-expired';
+    if (daysLeft === 0) return 'days-urgent';
+    if (daysLeft <= 3) return 'days-urgent';
+    if (daysLeft <= 7) return 'days-warning';
+    return 'days-good';
+  }
+
+  getDaysLeftText(daysLeft) {
+    if (daysLeft === null) return '?';
+    if (daysLeft < 0) return 'Expired';
+    if (daysLeft === 0) return 'Today!';
+    return `${daysLeft}d`;
   }
 
   calculateAverageDaysLeft(hackathons) {
@@ -211,7 +198,6 @@ class HackathonTracker {
   }
 
   extractEventData(title, bodyText, url, deadlineElements = []) {
-    // Platform detection
     let source = 'Other';
     if (url.includes('unstop.com')) source = 'Unstop';
     else if (url.includes('devpost.com')) source = 'Devpost';
@@ -369,115 +355,103 @@ class HackathonTracker {
       throw new Error('Duplicate event');
     }
   }
-
-  async loadAndRenderEvents() {
-    const result = await chrome.storage.local.get(['hackathons']);
-    let hackathons = result.hackathons || [];
-    
-    hackathons = hackathons.map(event => {
-      if (!event.id) {
-        event.id = 'event_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      }
-      return event;
-    });
-    
-    if (JSON.stringify(result.hackathons) !== JSON.stringify(hackathons)) {
-      await chrome.storage.local.set({ hackathons });
+async loadAndRenderEvents() {
+  const result = await chrome.storage.local.get(['hackathons']);
+  let hackathons = result.hackathons || [];
+  
+  hackathons = hackathons.map(event => {
+    if (!event.id) {
+      event.id = 'event_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
-    
-    this.renderTable(hackathons);
-    this.updateStats(hackathons);
+    return event;
+  });
+  
+  if (JSON.stringify(result.hackathons) !== JSON.stringify(hackathons)) {
+    await chrome.storage.local.set({ hackathons });
   }
+  
+  // THIS IS CRITICAL - use renderEvents, not renderTable
+  this.renderEvents(hackathons);
+  this.updateStats(hackathons);
+}
 
-  renderTable(hackathons) {
-    if (!hackathons || hackathons.length === 0) {
-      this.tableBody.innerHTML = `
-        <tr class="empty-state">
-          <td colspan="8">
-            <div class="empty-message">
-              📋 No events saved yet. Click "Save Current" to start tracking!
-            </div>
-          </td>
-        </tr>
-      `;
-      return;
-    }
+renderEvents(hackathons) {
+  const eventsList = document.getElementById('eventsList');
+  
+  if (!eventsList) {
+    console.error('eventsList element not found!');
+    return;
+  }
+  
+  if (!hackathons || hackathons.length === 0) {
+    eventsList.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-message">
+          📋 No events yet. Click "Save" on any hackathon page!
+        </div>
+      </div>
+    `;
+    return;
+  }
+  
+  let html = '';
+  
+  hackathons.forEach(event => {
+    const eventId = this.escapeHtml(event.id);
+    const daysLeft = this.calculateDaysLeft(event.deadline);
+    const daysLeftClass = this.getDaysLeftClass(daysLeft);
+    const daysLeftText = this.getDaysLeftText(daysLeft);
     
-    let html = '';
-    hackathons.forEach(event => {
-      const eventId = this.escapeHtml(event.id || 'no-id-' + Date.now());
-      const daysLeft = this.calculateDaysLeft(event.deadline);
-      const daysLeftDisplay = this.getDaysLeftDisplay(daysLeft);
-      const deadlineTooltip = daysLeft !== null ? 
-        `Deadline: ${event.deadline} (${daysLeft >= 0 ? daysLeft + ' days left' : 'Expired'})` : 
-        `Deadline: ${event.deadline}`;
-      
-      html += `
-        <tr data-id="${eventId}">
-          <td title="${this.escapeHtml(event.eventName)}">${this.truncateText(this.escapeHtml(event.eventName), 25)}</td>
-          <td><span class="deadline-badge deadline-tooltip" data-tooltip="${deadlineTooltip}">${this.escapeHtml(event.deadline)}</span></td>
-          <td>${daysLeftDisplay}</td>
-          <td><span class="platform-badge">${this.escapeHtml(event.source)}</span></td>
-          <td>${this.escapeHtml(event.action)}</td>
-          <td><a href="${this.escapeHtml(event.link)}" target="_blank" class="event-link" title="${this.escapeHtml(event.link)}">${this.truncateText(this.escapeHtml(event.link), 30)}</a></td>
-          <td>${this.escapeHtml(event.registeredDate)}</td>
-          <td>
-            <button class="delete-btn" data-id="${eventId}" title="Delete event">
-              🗑️
-            </button>
-          </td>
-        </tr>
-      `;
-    });
-    
-    this.tableBody.innerHTML = html;
-    
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+    html += `
+      <div class="event-card" data-id="${eventId}">
+        <div class="event-header">
+          <span class="event-name" title="${this.escapeHtml(event.eventName)}">${this.escapeHtml(event.eventName)}</span>
+          <button class="event-delete" data-id="${eventId}" title="Delete">🗑️</button>
+        </div>
         
-        const eventId = btn.getAttribute('data-id');
-        if (eventId) {
-          this.confirmDeleteEvent(eventId);
-        }
-      });
+        <div class="event-details">
+          <span class="deadline-badge">📅 ${this.escapeHtml(event.deadline)}</span>
+          <span class="platform-badge">${this.escapeHtml(event.source)}</span>
+          <span class="action-badge">${this.escapeHtml(event.action)}</span>
+          <span class="days-badge ${daysLeftClass}">⏰ ${daysLeftText}</span>
+        </div>
+        
+        <div class="event-footer">
+          <a href="${this.escapeHtml(event.link)}" target="_blank" class="event-link" title="${this.escapeHtml(event.link)}">
+            🔗 ${this.truncateText(this.escapeHtml(event.link), 30)}
+          </a>
+          <span class="registered-date">📌 ${this.escapeHtml(event.registeredDate)}</span>
+        </div>
+      </div>
+    `;
+  });
+  
+  eventsList.innerHTML = html;
+  
+  // Attach delete event listeners
+  document.querySelectorAll('.event-delete').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const eventId = btn.getAttribute('data-id');
+      if (eventId) {
+        this.confirmDeleteEvent(eventId);
+      }
     });
-  }
-
+  });
+}
   confirmDeleteEvent(eventId) {
     const overlay = document.createElement('div');
     overlay.className = 'delete-confirm-overlay';
-    overlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-    `;
     
     const dialog = document.createElement('div');
     dialog.className = 'delete-confirm-dialog';
-    dialog.style.cssText = `
-      background-color: var(--bg-primary);
-      border-radius: 12px;
-      padding: 24px;
-      max-width: 300px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
-    `;
-    
     dialog.innerHTML = `
-      <h3 style="margin-bottom: 12px; color: var(--text-primary);">Delete Event</h3>
-      <p style="margin-bottom: 20px; color: var(--text-secondary);">Are you sure you want to delete this event?</p>
-      <div style="display: flex; gap: 10px; justify-content: flex-end;">
-        <button class="delete-confirm-btn cancel" style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border);">Cancel</button>
-        <button class="delete-confirm-btn delete" style="padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; background-color: #ef4444; color: white;">Delete</button>
+      <h3>Delete Event</h3>
+      <p>Are you sure you want to delete this event?</p>
+      <div class="delete-confirm-actions">
+        <button class="cancel">Cancel</button>
+        <button class="delete">Delete</button>
       </div>
     `;
     
@@ -499,34 +473,36 @@ class HackathonTracker {
       }
     });
   }
-
-  async deleteEvent(eventId) {
-    try {
-      const result = await chrome.storage.local.get(['hackathons']);
-      let hackathons = result.hackathons || [];
-      
-      const rowToDelete = document.querySelector(`tr[data-id="${eventId}"]`);
-      
-      if (rowToDelete) {
-        rowToDelete.style.transition = 'all 0.3s ease';
-        rowToDelete.style.opacity = '0';
-        rowToDelete.style.transform = 'translateX(20px)';
-        
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-      
-      hackathons = hackathons.filter(event => event.id !== eventId);
-      
-      await chrome.storage.local.set({ hackathons });
-      
-      await this.loadAndRenderEvents();
-      
-      this.showNotification('✅ Event deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting event:', error);
-      alert('Error deleting event: ' + error.message);
+async deleteEvent(eventId) {
+  try {
+    const result = await chrome.storage.local.get(['hackathons']);
+    let hackathons = result.hackathons || [];
+    
+    // Find the card to delete (for animation)
+    const cardToDelete = document.querySelector(`.event-card[data-id="${eventId}"]`);
+    
+    if (cardToDelete) {
+      cardToDelete.style.transition = 'all 0.3s ease';
+      cardToDelete.style.opacity = '0';
+      cardToDelete.style.transform = 'translateX(20px)';
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
+    
+    // Filter out the deleted event
+    hackathons = hackathons.filter(event => event.id !== eventId);
+    
+    // Save back to storage
+    await chrome.storage.local.set({ hackathons });
+    
+    // Reload the events
+    await this.loadAndRenderEvents();
+    
+    this.showNotification('✅ Event deleted successfully!');
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    alert('Error deleting event: ' + error.message);
   }
+}
 
   updateStats(hackathons) {
     this.totalEventsSpan.textContent = hackathons.length;
@@ -590,7 +566,7 @@ class HackathonTracker {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `hackathon-deadlines-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `deadline-sentinel-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     
     URL.revokeObjectURL(url);

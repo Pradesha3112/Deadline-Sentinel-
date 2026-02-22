@@ -3,21 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hackathon Deadline Tracker</title>
+  <title>Deadline Sentinel</title>
   <link rel="stylesheet" href="popup.css">
-  <style>
-    /* Emergency fix if CSS doesn't load */
-    body { width: 1150px; min-width: 1150px; }
-  </style>
 </head>
 <body>
   <div class="container">
+    <!-- Header Section -->
     <header>
-      <div class="header-left">
-        <h1>🚀 Hackathon Deadline Tracker</h1>
-        <div class="current-datetime" id="currentDateTime"></div>
-      </div>
-      <div class="header-right">
+      <div class="header-top">
+        <h1>🚀 Deadline Sentinel</h1>
         <div class="theme-toggle">
           <input type="checkbox" id="themeToggle" class="theme-toggle-checkbox">
           <label for="themeToggle" class="theme-toggle-label">
@@ -28,71 +22,55 @@
             <span class="theme-toggle-switch"></span>
           </label>
         </div>
-        <div class="header-actions">
-          <button id="saveCurrent" class="btn-primary">
-            <span class="btn-icon">💾</span> Save Current
-          </button>
-          <button id="exportCSV" class="btn-secondary">
-            <span class="btn-icon">📥</span> Export CSV
-          </button>
-          <button id="clearAll" class="btn-danger">
-            <span class="btn-icon">🗑️</span> Clear All
-          </button>
-        </div>
       </div>
-    </header>
 
-    <main>
-      <div class="stats-container">
-        <div class="stat-card">
-          <span class="stat-label">Total Events</span>
+      <!-- Live Date & Time -->
+      <div class="current-datetime" id="currentDateTime">Loading...</div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-label">Total</span>
           <span id="totalEvents" class="stat-value">0</span>
         </div>
-        <div class="stat-card">
+        <div class="stat-item">
           <span class="stat-label">Platforms</span>
           <span id="totalPlatforms" class="stat-value">0</span>
         </div>
-        <div class="stat-card">
-          <span class="stat-label">Today's Regs</span>
+        <div class="stat-item">
+          <span class="stat-label">Today</span>
           <span id="todayRegistrations" class="stat-value">0</span>
         </div>
-        <div class="stat-card">
-          <span class="stat-label">Avg Days Left</span>
+        <div class="stat-item">
+          <span class="stat-label">Avg Days</span>
           <span id="avgDaysLeft" class="stat-value">-</span>
         </div>
       </div>
 
-      <div class="table-container">
-        <table id="eventsTable">
-          <thead>
-            <tr>
-              <th style="min-width: 150px;">Event Name</th>
-              <th style="min-width: 120px;">Deadline</th>
-              <th style="min-width: 100px;">Days Left</th>
-              <th style="min-width: 80px;">Source</th>
-              <th style="min-width: 120px;">What Can I Do</th>
-              <th style="min-width: 160px;">Link</th>
-              <th style="min-width: 90px;">Registered</th>
-              <th style="min-width: 60px;">Action</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-            <tr class="empty-state">
-              <td colspan="8">
-                <div class="empty-message">
-                  No events saved yet. Click "Save Current" to start tracking!
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button id="saveCurrent" class="btn-primary">
+          <span class="btn-icon">💾</span> Save
+        </button>
+        <button id="exportCSV" class="btn-secondary">
+          <span class="btn-icon">📥</span> Export
+        </button>
+        <button id="clearAll" class="btn-danger">
+          <span class="btn-icon">🗑️</span> Clear
+        </button>
+      </div>
+    </header>
+
+    <!-- Events List - THIS IS WHERE CARDS GO -->
+    <main>
+      <div id="eventsList" class="events-list">
+        <!-- Empty state will be shown by JS -->
       </div>
     </main>
 
+    <!-- Footer -->
     <footer>
-      <p>Click "Save Current" on any hackathon page to track it • 
-         <span style="color: var(--accent-primary);">Click 🗑️ to delete individual events</span>
-      </p>
+      <p>Click Save on any hackathon page to track deadlines</p>
     </footer>
   </div>
   <script src="popup.js"></script>
