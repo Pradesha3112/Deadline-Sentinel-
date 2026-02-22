@@ -105,6 +105,17 @@ hackathon-tracker-extension/
 
 ---
 
+## 📌 Screenshots
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/288ed83a-87d9-47e2-9256-5a12db6e499e" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/bbe2a1bc-6ec9-4948-a617-f9dd452df365" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/f22ec749-fff5-4009-904b-47a717b110c4" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/d8d98421-282a-48f9-9e31-baa81a638087" />
+
+
+
+---
+
+
 ## 📌 Use Case
 
 This extension helps developers:
